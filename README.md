@@ -9,3 +9,4 @@ token的获取：
 /mrfz_token_update [token] 更新您的token   
 /mrfz_token_query 查询当前帐号绑定的token  
 /mrfz_haunting_query 1/2/3 分别对应常驻池，中坚池和活动卡池  
+大家先别用，传错版本了，这个会报错，等我下课了就改QAQ
