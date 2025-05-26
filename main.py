@@ -120,10 +120,14 @@ class MyPlugin(Star):
             'type': 1,
         }
 
-        response = httpx.post('https://as.hypergryph.com/user/oauth2/v2/grant', headers=headers, json=json_data)
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post('https://as.hypergryph.com/user/oauth2/v2/grant', headers=headers, json=json_data)
+            grantToken=response.json()['data']['token']
+        except Exception as e:
+            yield event.plain_result("在获取grantTOKEN时出错") 
+            return
 
-        #grantToken=response.json()['data']['list']
-        grantToken=response.json()['data']['token']
         #yield event.plain_result(f"获取到grantTOKEN:{grantToken}\n")
         headers = {
             'Accept': '*/*',
@@ -147,18 +151,23 @@ class MyPlugin(Star):
             'token': grantToken,
             'appCode': 'arknights',
         }
-        response = httpx.get(
-            'https://binding-api-account-prod.hypergryph.com/account/binding/v1/binding_list',
-            params=params,
-            headers=headers,
-        )
-        bindinglist=response.json()['data']['list']
-
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                        'https://binding-api-account-prod.hypergryph.com/account/binding/v1/binding_list',
+                    params=params,
+                    headers=headers,
+                )
+            bindinglist=response.json()['data']['list']
+        except Exception as e:
+             yield event.plain_result(f"在获取bindinglist时出错")
+             return
         #yield event.plain_result(f"获取到绑定列表:{json.dumps(bindinglist,ensure_ascii=False)}\n")
 
         if (len(bindinglist)<=0):
             yield event.plain_result(f"没绑定角色")
             return
+        
         #print (bindinglist)
         for game in bindinglist:
             if game["appCode"] == "arknights":
@@ -193,14 +202,17 @@ class MyPlugin(Star):
                         'token': grantToken,
                         'uid': uid,
                     }
-
-                    response = httpx.post(
-                        'https://binding-api-account-prod.hypergryph.com/account/binding/v1/u8_token_by_uid',
-                        headers=headers,
-                        json=json_data,
-                    )
-
-                    u8token=response.json()['data']['token']
+                    try:
+                        async with httpx.AsyncClient() as client:
+                            response = await client.post(
+                                'https://binding-api-account-prod.hypergryph.com/account/binding/v1/u8_token_by_uid',
+                                headers=headers,
+                                json=json_data,
+                            )
+                        u8token=response.json()['data']['token']
+                    except Exception as e:
+                        yield event.plain_result("在获取U8token时出错")
+                        return
 
                     #yield event.plain_result(f"获取到u8token:{u8token}\n")
 
@@ -232,8 +244,13 @@ class MyPlugin(Star):
                         'share_type': '',
                         'share_by': '',
                     }
+                    try:
+                        async with httpx.AsyncClient() as client:
+                            response =await client.post('https://ak.hypergryph.com/user/api/role/login', cookies=cookies, headers=headers, json=json_data)
+                    except Exception as e:
+                        yield event.plain_result("登录获取Cookie失败")
+                        return
 
-                    response = httpx.post('https://ak.hypergryph.com/user/api/role/login', cookies=cookies, headers=headers, json=json_data)
                     if ("ak-user-center" in response.cookies):
                         usercookie=response.cookies["ak-user-center"]
                     else:
@@ -279,15 +296,19 @@ class MyPlugin(Star):
                         'size': '100',
                     }
 
+                    try:
+                        async with httpx.AsyncClient() as client:
+                            response = await client.get(
+                                'https://ak.hypergryph.com/user/api/inquiry/gacha/history',
+                                params=params,
+                                cookies=cookies,
+                                headers=headers,
+                            )
+                        HISTORY=response.json()
+                    except Exception as e:
+                        yield event.plain_result("在获取历史记录时出错")
+                        return
 
-                    response = httpx.get(
-                        'https://ak.hypergryph.com/user/api/inquiry/gacha/history',
-                        params=params,
-                        cookies=cookies,
-                        headers=headers,
-                    )
-
-                    HISTORY=response.json()
 
                     #debug
                     #yield event.plain_result(f"获取到历史记录:{json.dumps(HISTORY,ensure_ascii=False)}\n")
@@ -327,4 +348,7 @@ class MyPlugin(Star):
 
                     plt.clf()
                     os.remove(f"{path}/to_show.png")
+                    con.commit()
+                    cur.close()
+                    con.close()
                    
