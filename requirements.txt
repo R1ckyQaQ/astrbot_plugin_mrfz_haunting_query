@@ -1,5 +1,2 @@
 matplotlib
-sqlite3
-json
 httpx
-os
