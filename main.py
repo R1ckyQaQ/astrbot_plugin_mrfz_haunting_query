@@ -5,7 +5,6 @@ import astrbot.api.message_components as Comp
 import sqlite3
 import json
 import httpx
-import time
 import matplotlib.pyplot as plt
 import os
 plt.rcParams["font.sans-serif"]=["SimHei"] #设置字体
@@ -125,7 +124,7 @@ class MyPlugin(Star):
 
         #grantToken=response.json()['data']['list']
         grantToken=response.json()['data']['token']
-        yield event.plain_result(f"获取到grantTOKEN:{grantToken}\n")
+        #yield event.plain_result(f"获取到grantTOKEN:{grantToken}\n")
         headers = {
             'Accept': '*/*',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,ar;q=0.7,zh-TW;q=0.6',
@@ -155,7 +154,7 @@ class MyPlugin(Star):
         )
         bindinglist=response.json()['data']['list']
 
-        yield event.plain_result(f"获取到绑定列表:{json.dumps(bindinglist,ensure_ascii=False)}\n")
+        #yield event.plain_result(f"获取到绑定列表:{json.dumps(bindinglist,ensure_ascii=False)}\n")
 
         if (len(bindinglist)<=0):
             yield event.plain_result(f"没绑定角色")
@@ -203,7 +202,7 @@ class MyPlugin(Star):
 
                     u8token=response.json()['data']['token']
 
-                    yield event.plain_result(f"获取到u8token:{u8token}\n")
+                    #yield event.plain_result(f"获取到u8token:{u8token}\n")
 
                     cookies = {}
                     headers = {
@@ -317,14 +316,15 @@ class MyPlugin(Star):
                         text+=str(x)
                         text+="\n"
 
-                    plt.savefig("data/to_show.png") 
+                    path=os.getcwd()
+                    plt.savefig(f"{path}/to_show.png") 
                     chain=[
                         Comp.At(qq=event.get_sender_id()),
-                        Comp.Image.fromFileSystem("/QBOT/AstrBotLauncher-0.1.5.6/AstrBot/data/to_show.png"),
+                        Comp.Image.fromFileSystem(f"{path}/to_show.png"),
                         Comp.Plain(f"{text}")
                     ]                   
                     yield event.chain_result(chain)
 
                     plt.clf()
-                    os.remove("data/to_show.png")
+                    os.remove(f"{path}/to_show.png")
                    
