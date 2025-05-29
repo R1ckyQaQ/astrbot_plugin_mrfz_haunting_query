@@ -293,9 +293,12 @@ class MyPlugin(Star):
                     params = {
                         'uid': uid,
                         'category': cgtype,
-                        'size': '100',
+                        'size': '10',
                     }
-
+                    num={'3':0,'4':0,'5':0,'6':0}
+                    tot=0
+                    rare=[]
+                    USED=[]
                     try:
                         async with httpx.AsyncClient() as client:
                             response = await client.get(
@@ -308,23 +311,73 @@ class MyPlugin(Star):
                     except Exception as e:
                         yield event.plain_result("在获取历史记录时出错")
                         return
-
-
                     #debug
                     #yield event.plain_result(f"获取到历史记录:{json.dumps(HISTORY,ensure_ascii=False)}\n")
-
-                    num={'3':0,'4':0,'5':0,'6':0}
-                    tot=0
-                    rare=[]
+                    cnt=0
+                    USED_CNT=0
+                    is_first=0
                     for each in HISTORY['data']['list']:
                         charName=each['charName']
                         rarity=each['rarity']+1
+                        USED_CNT+=1
                         if(rarity==6):
                             rare.append(charName)
+                            if(is_first==0):
+                                is_first=1
+                                USED_CNT=0
+                            else:
+                                USED.append(USED_CNT)
+                                USED_CNT=0
                         num[str(rarity)]+=1
                         isNew=each['isNew']
                         tot+=1
+                        cnt+=1
+                        if(cnt==10):
+                            cnt=0
+                            gachaTs=each['gachaTs']
+                            pos=each['pos']
+                    hasMore=HISTORY['data']['hasMore']
                     
+                    
+                    while(hasMore):
+                        params = {
+                        'uid': uid,
+                        'category': cgtype,
+                        'size': '10',
+                        'pos':pos,
+                        'gachaTs':gachaTs,
+                        }
+                        async with httpx.AsyncClient() as client:
+                            response = await client.get(
+                                'https://ak.hypergryph.com/user/api/inquiry/gacha/history',
+                                params=params,
+                                cookies=cookies,
+                                headers=headers,
+                            )
+                        HISTORY=response.json()
+                        for each in HISTORY['data']['list']:
+                            charName=each['charName']
+                            rarity=each['rarity']+1
+                            USED_CNT+=1
+                            if(rarity==6):
+                                rare.append(charName)
+                                if(is_first==0):
+                                    is_first=1
+                                    USED_CNT=0
+                                else:
+                                    USED.append(USED_CNT)
+                                    USED_CNT=0
+                            num[str(rarity)]+=1
+                            isNew=each['isNew']
+                            tot+=1
+                            cnt+=1
+                            if(cnt==10):
+                                cnt=0
+                                gachaTs=each['gachaTs']
+                                pos=each['pos']
+                        hasMore=HISTORY['data']['hasMore']
+                    
+                    USED.append(USED_CNT+1)
                     label=['三星','四星','五星','六星']
                     explode=[0,0,0,0]
                     values=[num['3'],num['4'],num['5'],num['6']]
@@ -333,8 +386,11 @@ class MyPlugin(Star):
                     plt.title(f'近{tot}抽的抽卡统计')
 
                     text="您在最近"+str(tot)+"抽中 获得了以下六星干员:\n"
+                    NOW_IDX=0
                     for x in rare:
                         text+=str(x)
+                        text+=(f"[{USED[NOW_IDX]}抽]")
+                        NOW_IDX+=1
                         text+="\n"
 
                     path=os.getcwd()
