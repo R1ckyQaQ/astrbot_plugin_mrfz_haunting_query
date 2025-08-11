@@ -3,11 +3,23 @@ from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 import astrbot.api.message_components as Comp
 import sqlite3
-import json
 import httpx
 import matplotlib.pyplot as plt
 import os
-plt.rcParams["font.sans-serif"]=["SimHei"] #设置字体
+from matplotlib import font_manager
+
+# 设置字体
+font_path = os.path.join(os.path.dirname(__file__), "data", "SourceHanSansSC-Regular.otf")
+
+if os.path.exists(font_path):
+    # 将字体文件添加到 matplotlib 的字体管理器中
+    font_manager.fontManager.addfont(font_path)
+    # 设置 matplotlib 使用该字体
+    plt.rcParams['font.family'] = 'Source Han Sans SC'
+else:
+    logger.error(f"字体文件不存在: {font_path}，将回退到默认字体。")
+    plt.rcParams["font.sans-serif"]=["SimHei"] #设置字体
+
 plt.rcParams["axes.unicode_minus"]=False #该语句解决图像中的“-”负号的乱码问题
 
 
@@ -21,10 +33,10 @@ class MyPlugin(Star):
         con=sqlite3.connect("data/mrfz_token.db")
         cur=con.cursor()
         cur.execute('''CREATE TABLE IF NOT EXISTS users (
-                     id STR PRIMARY KEY,
-                     token VARCHAR(100)
-                   )''')
-        
+                                                            id STR PRIMARY KEY,
+                                                            token VARCHAR(100)
+            )''')
+
         idx=event.get_sender_id()
         yield event.plain_result(f"用户的QQ号:{idx}\n")
         yield event.plain_result(f"用户的token:{tok}\n")
@@ -35,24 +47,24 @@ class MyPlugin(Star):
         else:
             exist=False
         if(exist):
-             cur.execute(f"UPDATE users SET token='{tok}' WHERE id='{idx}'")
+            cur.execute(f"UPDATE users SET token='{tok}' WHERE id='{idx}'")
         else:
-             cur.execute(f"INSERT INTO users (id,token) VALUES('{idx}','{tok}')")
-        
+            cur.execute(f"INSERT INTO users (id,token) VALUES('{idx}','{tok}')")
+
         con.commit()
-        cur.close() 
+        cur.close()
         con.close()
         yield event.plain_result(f"成功登记您的TOKEN喵~\n")
-    
+
     @filter.command("mrfz_token_query")
     async def token_query(self,event:AstrMessageEvent):
         con=sqlite3.connect("data/mrfz_token.db")
         cur=con.cursor()
         cur.execute('''CREATE TABLE IF NOT EXISTS users (
-                     id STR PRIMARY KEY,
-                     token VARCHAR(100)
-                   )''')
-        
+                                                            id STR PRIMARY KEY,
+                                                            token VARCHAR(100)
+            )''')
+
         idx=event.get_sender_id()
         yield event.plain_result(f"用户的QQ号:{idx}\n")
         cur.execute(f"SELECT COUNT(*) FROM users WHERE id='{idx}'")
@@ -62,24 +74,24 @@ class MyPlugin(Star):
         else:
             exist=False
         if(exist):
-             cur.execute(f"SELECT token FROM users where id='{idx}'")
-             now=cur.fetchall()
-             yield event.plain_result(f"您绑定的token为{now[0][0]}\n")
+            cur.execute(f"SELECT token FROM users where id='{idx}'")
+            now=cur.fetchall()
+            yield event.plain_result(f"您绑定的token为{now[0][0]}\n")
         else:
-             yield event.plain_result(f"不存在的ID 请先存一下你的token喵~")
+            yield event.plain_result(f"不存在的ID 请先存一下你的token喵~")
         con.commit()
-        cur.close() 
+        cur.close()
         con.close()
         return
-    
+
     @filter.command("mrfz_haunting_query")
     async def get_query(self,event:AstrMessageEvent,to_query:int):
         con=sqlite3.connect("data/mrfz_token.db")
         cur=con.cursor()
         cur.execute('''CREATE TABLE IF NOT EXISTS users (
-                            id STR PRIMARY KEY,
-                            token VARCHAR(100)
-                        )''')
+                                                            id STR PRIMARY KEY,
+                                                            token VARCHAR(100)
+            )''')
         idx=event.get_sender_id()
         cur.execute(f"SELECT COUNT(*) FROM users WHERE id='{idx}'")
         result=cur.fetchone()
@@ -88,7 +100,7 @@ class MyPlugin(Star):
         else:
             yield event.plain_result(f"不存在的TOKEN~")
             return
-        
+
         cur.execute(f"SELECT token FROM users where id='{idx}'")
         now=cur.fetchall()
         tok=now[0][0]
@@ -125,7 +137,7 @@ class MyPlugin(Star):
                 response = await client.post('https://as.hypergryph.com/user/oauth2/v2/grant', headers=headers, json=json_data)
             grantToken=response.json()['data']['token']
         except Exception as e:
-            yield event.plain_result("在获取grantTOKEN时出错") 
+            yield event.plain_result("在获取grantTOKEN时出错")
             return
 
         #yield event.plain_result(f"获取到grantTOKEN:{grantToken}\n")
@@ -154,20 +166,20 @@ class MyPlugin(Star):
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                        'https://binding-api-account-prod.hypergryph.com/account/binding/v1/binding_list',
+                    'https://binding-api-account-prod.hypergryph.com/account/binding/v1/binding_list',
                     params=params,
                     headers=headers,
                 )
             bindinglist=response.json()['data']['list']
         except Exception as e:
-             yield event.plain_result(f"在获取bindinglist时出错")
-             return
+            yield event.plain_result(f"在获取bindinglist时出错")
+            return
         #yield event.plain_result(f"获取到绑定列表:{json.dumps(bindinglist,ensure_ascii=False)}\n")
 
         if (len(bindinglist)<=0):
             yield event.plain_result(f"没绑定角色")
             return
-        
+
         #print (bindinglist)
         for game in bindinglist:
             if game["appCode"] == "arknights":
@@ -256,7 +268,7 @@ class MyPlugin(Star):
                     else:
                         yield event.plain_result(f"登录获取cookie失败")
                         return
-                    
+
                     #debug
                     #yield event.plain_result(f"获取到用户cookie:{usercookie}\n")
 
@@ -337,15 +349,15 @@ class MyPlugin(Star):
                             gachaTs=each['gachaTs']
                             pos=each['pos']
                     hasMore=HISTORY['data']['hasMore']
-                    
-                    
+
+
                     while(hasMore):
                         params = {
-                        'uid': uid,
-                        'category': cgtype,
-                        'size': '10',
-                        'pos':pos,
-                        'gachaTs':gachaTs,
+                            'uid': uid,
+                            'category': cgtype,
+                            'size': '10',
+                            'pos':pos,
+                            'gachaTs':gachaTs,
                         }
                         async with httpx.AsyncClient() as client:
                             response = await client.get(
@@ -376,7 +388,7 @@ class MyPlugin(Star):
                                 gachaTs=each['gachaTs']
                                 pos=each['pos']
                         hasMore=HISTORY['data']['hasMore']
-                    
+
                     USED.append(USED_CNT+1)
                     label=['三星','四星','五星','六星']
                     explode=[0,0,0,0]
@@ -394,12 +406,12 @@ class MyPlugin(Star):
                         text+="\n"
 
                     path=os.getcwd()
-                    plt.savefig(f"{path}/to_show.png") 
+                    plt.savefig(f"{path}/to_show.png")
                     chain=[
                         Comp.At(qq=event.get_sender_id()),
                         Comp.Image.fromFileSystem(f"{path}/to_show.png"),
                         Comp.Plain(f"{text}")
-                    ]                   
+                    ]
                     yield event.chain_result(chain)
 
                     plt.clf()
@@ -407,4 +419,3 @@ class MyPlugin(Star):
                     con.commit()
                     cur.close()
                     con.close()
-                   
