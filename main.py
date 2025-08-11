@@ -278,6 +278,9 @@ class MyPlugin(Star):
                         cgtype="classic"
                     if(to_query==3):
                         cgtype="anniver_fest"
+                    if(to_query==4):
+                        cgtype="summer_fest"
+                    #新增夏活的debug
 
                     cookies = {
                         'ak-user-center': usercookie,
