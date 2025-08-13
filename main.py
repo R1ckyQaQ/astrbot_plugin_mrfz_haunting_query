@@ -38,8 +38,8 @@ class MyPlugin(Star):
             )''')
 
         idx=event.get_sender_id()
-        yield event.plain_result(f"用户的QQ号:{idx}\n")
-        yield event.plain_result(f"用户的token:{tok}\n")
+       # yield event.plain_result(f"用户的QQ号:{idx}\n")
+       # yield event.plain_result(f"用户的token:{tok}\n")
         cur.execute(f"SELECT COUNT(*) FROM users WHERE id='{idx}'")
         result=cur.fetchone()
         if(result[0]>0):
@@ -66,7 +66,7 @@ class MyPlugin(Star):
             )''')
 
         idx=event.get_sender_id()
-        yield event.plain_result(f"用户的QQ号:{idx}\n")
+        #yield event.plain_result(f"用户的QQ号:{idx}\n")
         cur.execute(f"SELECT COUNT(*) FROM users WHERE id='{idx}'")
         result=cur.fetchone()
         if(result[0]>0):
@@ -280,7 +280,6 @@ class MyPlugin(Star):
                         cgtype="anniver_fest"
                     if(to_query==4):
                         cgtype="summer_fest"
-                    #新增夏活的debug
 
                     cookies = {
                         'ak-user-center': usercookie,
@@ -394,10 +393,28 @@ class MyPlugin(Star):
 
                     USED.append(USED_CNT+1)
                     label=['三星','四星','五星','六星']
-                    explode=[0,0,0,0]
+                    explode=[]
                     values=[num['3'],num['4'],num['5'],num['6']]
+                    #values=[0,0,0,0]
+
+                    if(values==[0,0,0,0]):
+                        yield event.plain_result("您最近好像没有抽过这个卡池")
+                        return
+                    
+                    
                     colors=['blue','purple','yellow','red']
-                    plt.pie(values,explode=explode,labels=label,colors=colors,autopct='%1.1f%%')#绘制饼图
+
+                    filtered_label=[]
+                    filtered_data=[]
+                    filtered_color=[]
+                    for i in range(0,4):
+                        if(values[i]!=0):
+                            filtered_label.append(label[i])
+                            filtered_color.append(colors[i])
+                            filtered_data.append(values[i])
+                            explode.append(0)
+
+                    plt.pie(filtered_data,explode=explode,labels=filtered_label,colors=filtered_color,autopct='%1.1f%%')#绘制饼图
                     plt.title(f'近{tot}抽的抽卡统计')
 
                     text="您在最近"+str(tot)+"抽中 获得了以下六星干员:\n"
