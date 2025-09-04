@@ -8,7 +8,7 @@ token的获取：
 指令:  
 /mrfz_token_update [token] 更新您的token   
 /mrfz_token_query 查询当前帐号绑定的token  
-/mrfz_haunting_query 1/2/3/4 分别对应常驻池，中坚池，活动卡池和夏活卡池  
+/mrfz_haunting_query 1/2/3/4/5 分别对应常驻池，中坚池，活动卡池，夏活卡池和母鸡卡卡池  
 
 # UPDATE:  
 2025.5.29 修复了只能读取100抽的BUG，增加了显示获得每个六星干员的抽数的功能
