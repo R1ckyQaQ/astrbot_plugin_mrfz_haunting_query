@@ -280,7 +280,9 @@ class MyPlugin(Star):
                         cgtype="anniver_fest"
                     if(to_query==4):
                         cgtype="summer_fest"
-
+                    if(to_query==5):
+                        cgtype="mujica"
+                        
                     cookies = {
                         'ak-user-center': usercookie,
                     }
